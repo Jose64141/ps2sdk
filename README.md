@@ -8,6 +8,9 @@
 Copyright 2001-2004, ps2dev - http://www.ps2dev.org  
 All rights reserved.
 
+Note: This fork is a merge of the more recent version of PS2SDK and the commit made by balika011 to add PSX support at https://github.com/xfwcfw/ps2sdk
+
+
 ## Introduction
 
 PS2SDK is a collecction of Open Source libraries used for developing applications on Sony's PlayStation 2® (PS2). ps2sdk contains the work from a number of PS2 projects which are now buildable in a single source tree. Review the history section for how ps2sdk came about.
@@ -95,3 +98,4 @@ ps2ip was started by David Ryan (Oobles) in late 2002 to provide a TCP/IP stack 
 libhdd was started by Nick Van Veen (Sjeep) in 2003 to provide a Hard Disk Drive driver and file system that is compatible with the commercial Sony HDD and other non-Sony HDDs. The work was sponsored by DMS3, and the resulting code kindly provided back to the ps2dev community. The last release before ps2sdk was version 1.2 released in February 2004.
 
 ps2hid was started by Tyranid in October 2003 to provide USB mouse and keyboard drivers compatible with the Sony USB Driver.
+
