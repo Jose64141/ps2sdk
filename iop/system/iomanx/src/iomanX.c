@@ -74,6 +74,9 @@ int AddDrv(iop_device_t *device)
 	int i, res = -1;
     int oldIntr;
 
+	if (!strcmp(device->name, "xfrom"))
+		device->type |= IOP_DT_PSX;
+
     CpuSuspendIntr(&oldIntr);
 
 	for (i = 0; i < MAX_DEVICES; i++)
@@ -386,11 +389,11 @@ int mode2modex(int mode)
 {
 	int modex = 0;
 
-	if (FIO_SO_ISLNK(mode))
+	if (mode & FIO_SO_IFLNK)
 		modex |= FIO_S_IFLNK;
-	if (FIO_SO_ISREG(mode))
+	if (mode & FIO_SO_IFREG)
 		modex |= FIO_S_IFREG;
-	if (FIO_SO_ISDIR(mode))
+	if (mode & FIO_SO_IFDIR)
 		modex |= FIO_S_IFDIR;
 
 	/* Convert the file access modes.  */
@@ -408,11 +411,11 @@ int modex2mode(int modex)
 {
 	int mode = 0;
 
-	if (FIO_S_ISLNK(modex))
+	if (modex & FIO_S_IFLNK)
 		mode |= FIO_SO_IFLNK;
-	if (FIO_S_ISREG(modex))
+	if (modex & FIO_S_IFREG)
 		mode |= FIO_SO_IFREG;
-	if (FIO_S_ISDIR(modex))
+	if (modex & FIO_S_IFDIR)
 		mode |= FIO_SO_IFDIR;
 
 	/* Convert the file access modes.  */
@@ -433,11 +436,19 @@ int dread(int fd, iox_dirent_t *iox_dirent)
 
     if (f == NULL ||  !(f->mode & 8))
             return -EBADF;
-
-    /* If this is a legacy device (such as mc:) then we need to convert the mode
-       variable of the stat structure to iomanX's extended format.  */
-    if ((f->device->type & 0xf0000000) != IOP_DT_FSEXT)
+    if ((f->device->type & 0xf0000000) == IOP_DT_PSX)
+	{
+		res = f->device->ops->dread(f, iox_dirent);
+		iox_dirent->stat.mode = mode2modex(iox_dirent->stat.mode);
+	}
+    else if ((f->device->type & 0xf0000000) == IOP_DT_FSEXT)
+	{
+        res = f->device->ops->dread(f, iox_dirent);
+	}
+	else
     {
+	    /* If this is a legacy device (such as mc:) then we need to convert the mode
+	       variable of the stat structure to iomanX's extended format.  */
         typedef int	io_dread_t(iop_file_t *, io_dirent_t *);
         io_dirent_t io_dirent;
         io_dread_t *io_dread = (io_dread_t*) f->device->ops->dread;
@@ -454,8 +465,6 @@ int dread(int fd, iox_dirent_t *iox_dirent)
 
         strncpy(iox_dirent->name, io_dirent.name, sizeof(iox_dirent->name));
     }
-    else
-        res = f->device->ops->dread(f, iox_dirent);
 
     return res;
 }
